@@ -34,7 +34,8 @@ class MyProvider extends Component {
   addNote = () => {
     //if (this.state.noteText === "") { // context.handlers.handleKeyPress.
     if (this.state.noteText == "") {
-      alert("Please enter text.");
+      alert("Don't give me that empty textfield bullshit.");
+      return;
     }
     let notesArr = this.state.notes;
     notesArr.push(this.state.noteText);
@@ -87,6 +88,7 @@ class App extends Component {
                   }}
                   className="textInput"
                   value={context.state.noteText}
+                  placeholder="Type Todo Here."
                   onChange={noteText =>
                     context.handlers.updateNoteText(noteText)
                   }
