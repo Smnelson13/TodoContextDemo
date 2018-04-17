@@ -2,18 +2,20 @@ import React, { Component, createContext } from "react";
 import Note from "./components/Note";
 import "./App.css";
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+const MyContext = React.createContext();
+
+class MyProvider extends Component {
+  constructor() {
+    super();
     this.state = {
       noteText: "",
       notes: []
     };
   }
 
-  updateNoteText(noteText) {
+  updateNoteText = noteText => {
     this.setState({ noteText: noteText.target.value });
-  }
+  };
 
   handleKeyPress = event => {
     if (event.key === "Enter") {
@@ -23,46 +25,78 @@ class App extends Component {
     }
   };
 
-  deleteNote(index) {
+  deleteNote = index => {
     let notesArr = this.state.notes;
     notesArr.splice(index, 1);
     this.setState({ notes: notesArr });
-  }
+  };
 
-  addNote() {
-    if (this.state.noteText === "") {
-      return;
+  addNote = () => {
+    //if (this.state.noteText === "") { // context.handlers.handleKeyPress.
+    if (this.state.noteText == "") {
+      alert("Please enter text.");
     }
     let notesArr = this.state.notes;
     notesArr.push(this.state.noteText);
     this.setState({ noteText: "" });
-    this.textInput.focus();
-  }
-
+  };
   render() {
-    let notes = this.state.notes.map((val, key) => {
-      return (
-        <Note key={key} text={val} deleteMethod={() => this.deleteNote(key)} />
-      );
-    });
     return (
-      <div className="container">
-        <div className="header">Todo Application</div>
-        {notes}
-        <div className="btn" onClick={this.addNote.bind(this)}>
-          +
+      <MyContext.Provider
+        value={{
+          state: this.state,
+          handlers: {
+            updateNoteText: this.updateNoteText,
+            handleKeyPress: this.handleKeyPress,
+            deleteNote: this.deleteNote,
+            addNote: this.addNote
+          }
+        }}
+      >
+        {this.props.children}
+      </MyContext.Provider>
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <MyProvider>
+        <div className="container">
+          <div className="header">Todo Application</div>
+          <MyContext.Consumer>
+            {context => (
+              <span test={context}>
+                <div className="btn" onClick={() => context.handlers.addNote()}>
+                  +
+                </div>
+                {context.state.notes.map((val, key) => {
+                  return (
+                    <Note
+                      key={key}
+                      text={val}
+                      deleteMethod={() => context.handlers.deleteNote(key)}
+                    />
+                  );
+                })}
+                <input
+                  type="text"
+                  ref={input => {
+                    this.textInput = input;
+                  }}
+                  className="textInput"
+                  value={context.state.noteText}
+                  onChange={noteText =>
+                    context.handlers.updateNoteText(noteText)
+                  }
+                  onKeyPress={context.handlers.handleKeyPress.bind(this)}
+                />
+              </span>
+            )}
+          </MyContext.Consumer>
         </div>
-        <input
-          type="text"
-          ref={input => {
-            this.textInput = input;
-          }}
-          className="textInput"
-          value={this.state.noteText}
-          onChange={noteText => this.updateNoteText(noteText)}
-          onKeyPress={this.handleKeyPress.bind(this)}
-        />
-      </div>
+      </MyProvider>
     );
   }
 }
